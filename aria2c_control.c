@@ -27,6 +27,14 @@
 #define CMD_STOP_LEN 10
 #define SUFFIX 4
 
+/*****************************************************************
+ Function:     setup_file
+ Description:  we use this function to create a new file
+ Input:        name: the name of the new file
+ Output:       None
+ Return:       0:create failed 1:create successfully
+ Others:       None
+*****************************************************************/
 int setup_file(const char *name)
 {
     FILE *fp;
@@ -46,11 +54,30 @@ int setup_file(const char *name)
     return 1;
 }
 
+/*****************************************************************
+ Function:     delete_file
+ Description:  we use this function to delete a file
+ Input:        name: the name of the file you want to delete
+ Output:       None
+ Return:       0:delete successfully 1:delete failed
+ Others:       None
+*****************************************************************/
 int delete_file(const char *name)
 {
     return remove(name);
 }
 
+/*****************************************************************
+ Function:     complete_shell
+ Description:  we use this function to complete the shell
+ Input:        name: the name of shell file you want to complete
+               result: this shell excute result will output to
+                       the file named result
+               type: the type of the shell
+ Output:       None
+ Return:       0:create failed 1:create successfully
+ Others:       None
+*****************************************************************/
 int complete_shell(const char *name, const char *result, int type)
 {
     FILE *fp = fopen(name, "w");
@@ -73,6 +100,15 @@ int complete_shell(const char *name, const char *result, int type)
     }
 }
 
+/*****************************************************************
+ Function:     get_status
+ Description:  we use this function to get the download result
+ Input:        result: the file named with result store the result
+ Output:       None
+ Return:       0:download not complete 1:download complete
+               -1:function excute wrong
+ Others:       None
+*****************************************************************/
 int get_status(const char *result)
 {
     FILE *fp;
@@ -84,21 +120,48 @@ int get_status(const char *result)
     file_size = ftell(fp);
 
     fseek(fp, 0, SEEK_SET );
-    status =  (char *)malloc(file_size * sizeof(char));
-    fread(status, file_size, sizeof(char), fp);
+    status =  malloc(file_size * sizeof(*status));
+    fread(status, 1, sizeof(char), fp);
 
     #if DEBUG_PRINT
-    printf("get_status:the status is %s and the length is %lu", status, strlen(status));
+    printf("get_status:the status is %s and the length is %lu\n", status,
+           strlen(status));
     #endif
 
-    return 0;
+    if (strcmp(status, "0") == 0)
+    {
+        return 0;
+    }
+    else if (strcmp(status, "1") == 0)
+    {
+        return 1;
+    }
+    else
+    {
+        return -1;
+    }
 }
 
+/*****************************************************************
+ Function:     aria2c_control
+ Description:  we use this function to control download
+ Input:        url: the address of the resource
+               dir: the location you want to store the resource
+               name: the name you give the download resources
+               time: the time you give the doenload
+               speed: the highest speed you give aria2c
+ Output:       None
+ Return:       0:download normal but didn't complete
+               1:download successful and complete_shell
+               -1: there are some problems happened
+ Others:       None
+*****************************************************************/
 int aria2c_control(char *url, char *dir, char *name, int time, char *speed)
 {
     int cmd_len = strlen(url) + strlen(dir) + strlen(name) + CMD_APPEND_LEN * 2
                 + CMD_HEAD_LEN + CMD_TIME_LEN + CMD_SPEED_LEN + strlen(speed)
                 + CMD_DOWNLOAD_RESULT_LEN * 2 + SUFFIX * 2 + CMD_STOP_LEN;
+    int status;
     char *cmd = malloc(sizeof(char) * cmd_len);
     char *time_buffer = malloc(sizeof(char) * CMD_TIME_LEN);
     char *complete_sh = malloc(strlen(name) + SUFFIX);
@@ -168,14 +231,34 @@ int aria2c_control(char *url, char *dir, char *name, int time, char *speed)
 
     system(cmd);
 
-    get_status(result);
+    status = get_status(result);
+
+    delete_file(result);
+    delete_file(complete_sh);
+    delete_file(not_complete_sh);
 
     free(cmd);
     free(result);
     free(complete_sh);
     free(time_buffer);
     free(not_complete_sh);
-    return 0;
+
+    if (-1 == status)
+    {
+        return -1;
+    }
+    else if (0 == status)
+    {
+        return 0;
+    }
+    else if (1 == status)
+    {
+        return 1;
+    }
+    else
+    {
+        return -1;
+    }
 }
 
 int main()
