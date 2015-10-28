@@ -17,7 +17,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
-#include "aria2c_control.h"
+#include "../func_control_h/aria2c_control.h"
 
 #define CMD_HEAD_LEN 10
 #define CMD_TIME_LEN 6
