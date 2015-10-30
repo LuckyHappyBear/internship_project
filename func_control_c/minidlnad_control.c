@@ -15,6 +15,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "../func_control_h/minidlnad_control.h"
 
 /*****************************************************************
  Function:     minidlnad_start
@@ -62,11 +63,4 @@ int minidlnad_stop()
     {
         return 0;
     }
-}
-
-int main()
-{
-    //minidlnad_start();
-    //minidlnad_stop();
-    return 0;
 }

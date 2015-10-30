@@ -13,10 +13,12 @@
 
 *************************************************************************/
 
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+
 #include "../func_control_h/aria2c_control.h"
 
 #define CMD_HEAD_LEN 10
@@ -26,6 +28,12 @@
 #define CMD_DOWNLOAD_RESULT_LEN 25
 #define CMD_STOP_LEN 10
 #define SUFFIX 4
+#define CMD_QUIET_LEN 15
+#define CMD_DAEMON_LEN 15
+#define PROCESS_LEN 1024
+#define GET_PID_CMD_LEN 2048
+#define MAX_PID_LEN 5
+#define KILL_PID_LEN 15
 
 /*****************************************************************
  Function:     setup_file
@@ -39,6 +47,7 @@ int setup_file(const char *name)
 {
     FILE *fp;
     int fd;
+
     fp = fopen(name, "a+w");
     if (NULL == fp)
     {
@@ -122,6 +131,7 @@ int get_status(const char *result)
     fseek(fp, 0, SEEK_SET );
     status =  malloc(file_size * sizeof(*status));
     fread(status, 1, sizeof(char), fp);
+    status[1] = '\0';
 
     #if DEBUG_PRINT
     printf("get_status:the status is %s and the length is %lu\n", status,
@@ -142,8 +152,59 @@ int get_status(const char *result)
     }
 }
 
+int get_pid(char *url, char *dir, char *name)
+{
+    FILE *stream;
+    int pid;
+    int i;
+    char pid_buffer[MAX_PID_LEN];
+    char buf[PROCESS_LEN];
+    char cmd[GET_PID_CMD_LEN];
+
+    memset(buf, 0, PROCESS_LEN);
+    memset(cmd, 0, GET_PID_CMD_LEN);
+
+    strcat(cmd, "ps ax | grep 'aria2c ");
+    strcat(cmd, url);
+    strcat(cmd, " -d ");
+    strcat(cmd, dir);
+    strcat(cmd, " -o ");
+    strcat(cmd, name);
+    strcat(cmd, "' | grep -v grep");
+
+    stream = popen(cmd, "r");
+    if (NULL == popen)
+    {
+        return -1;
+    }
+
+    fread(buf, sizeof(char), sizeof(buf), stream);
+
+    #if DEBUG_PRINT
+    printf("The buf is %s\n", buf);
+    #endif
+
+    for (i = 0; i < sizeof(buf); i ++)
+    {
+        if (isspace(buf[i]))
+        {
+            break;
+        }
+        else
+        {
+            pid_buffer[i] = buf[i];
+        }
+    }
+
+    pid = atoi(pid_buffer);
+
+    pclose(stream);
+
+    return pid;
+}
+
 /*****************************************************************
- Function:     aria2c_control
+ Function:     aria2c_start
  Description:  we use this function to control download
  Input:        url: the address of the resource
                dir: the location you want to store the resource
@@ -156,11 +217,12 @@ int get_status(const char *result)
                -1: there are some problems happened
  Others:       None
 *****************************************************************/
-int aria2c_control(char *url, char *dir, char *name, int time, char *speed)
+int aria2c_start(char *url, char *dir, char *name, int time, char *speed)
 {
     int cmd_len = strlen(url) + strlen(dir) + strlen(name) + CMD_APPEND_LEN * 2
                 + CMD_HEAD_LEN + CMD_TIME_LEN + CMD_SPEED_LEN + strlen(speed)
-                + CMD_DOWNLOAD_RESULT_LEN * 2 + SUFFIX * 2 + CMD_STOP_LEN;
+                + CMD_DOWNLOAD_RESULT_LEN * 2 + SUFFIX * 2 + CMD_STOP_LEN
+                + CMD_QUIET_LEN;
     int status;
     char *cmd = malloc(sizeof(char) * cmd_len);
     char *time_buffer = malloc(sizeof(char) * CMD_TIME_LEN);
@@ -185,25 +247,25 @@ int aria2c_control(char *url, char *dir, char *name, int time, char *speed)
     if (!setup_file(complete_sh))
     {
         #if DEBUG_PRINT
-        printf("aria2c_control:setup complete_sh\n");
+        printf("aria2c_start:setup complete_sh\n");
         #endif
-        return 0;
+        return -1;
     }
 
     if (!setup_file(not_complete_sh))
     {
         #if DEBUG_PRINT
-        printf("aria2c_control:setup not_complete_sh\n");
+        printf("aria2c_start:setup not_complete_sh\n");
         #endif
-        return 0;
+        return -1;
     }
 
     if (!setup_file(result))
     {
         #if DEBUG_PRINT
-        printf("aria2c_control:setup result\n");
+        printf("aria2c_start:setup result\n");
         #endif
-        return 0;
+        return -1;
     }
 
     complete_shell(complete_sh, result, 1);
@@ -224,6 +286,8 @@ int aria2c_control(char *url, char *dir, char *name, int time, char *speed)
     strcat(cmd, complete_sh);
     strcat(cmd, " --on-download-stop=");
     strcat(cmd, not_complete_sh);
+    strcat(cmd, " --daemon=true");
+    strcat(cmd, " > log.txt");
 
     #if DEBUG_PRINT
     printf("the cmd is %s\n", cmd);
@@ -261,8 +325,20 @@ int aria2c_control(char *url, char *dir, char *name, int time, char *speed)
     }
 }
 
-int main()
+int aria2c_stop(char *url, char *dir, char *name)
 {
-    aria2c_control("http://sourceforge.net/projects/aria2/files/stable/aria2-1.15.2/aria2-1.15.2.tar.gz/download", "/home/luckybear/Download/", "aria.tar.gz", 10, "10K");
-    return 0;
+    int pid = get_pid(url, dir, name);
+    char cmd[KILL_PID_LEN];
+    char pid_buffer[MAX_PID_LEN];
+    memset(cmd, 0, KILL_PID_LEN);
+    memset(pid_buffer, 0, MAX_PID_LEN);
+
+    sprintf(pid_buffer, "%d", pid);
+
+    strcat(cmd, "kill");
+    strcat(cmd, pid_buffer);
+
+    system(cmd);
+
+    return 1;
 }

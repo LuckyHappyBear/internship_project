@@ -66,7 +66,7 @@ int complete_shell(const char *name, const char *result, int type);
 int get_status(const char *result);
 
 /*****************************************************************
- Function:     aria2c_control
+ Function:     aria2c_start
  Description:  we use this function to control download
  Input:        url: the address of the resource
                dir: the location you want to store the resource
@@ -79,7 +79,7 @@ int get_status(const char *result);
                -1: there are some problems happened
  Others:       None
 *****************************************************************/
-int aria2c_control(char *url, char *dir, char *name, int time, char *speed);
+int aria2c_start(char *url, char *dir, char *name, int time, char *speed);
 
 #ifdef __cplusplus
 }
