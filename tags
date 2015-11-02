@@ -4,29 +4,40 @@
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.9~svn20110310	//
-ACTION_DOWNLOAD_DELETE	cgi_handle/cgi_handle.h	34;"	d
-ACTION_DOWNLOAD_SPEED_SET	cgi_handle/cgi_handle.h	32;"	d
+ACTION_DOWNLOAD_DELETE	cgi_handle/cgi_handle.h	33;"	d
+ACTION_DOWNLOAD_RESTART	cgi_handle/cgi_handle.h	32;"	d
 ACTION_DOWNLOAD_START	cgi_handle/cgi_handle.h	30;"	d
 ACTION_DOWNLOAD_STOP	cgi_handle/cgi_handle.h	31;"	d
-ACTION_DOWNLOAD_TIME_SET	cgi_handle/cgi_handle.h	33;"	d
 ACTION_MINIDLNAD_START	cgi_handle/cgi_handle.h	35;"	d
 ACTION_MINIDLNAD_STOP	cgi_handle/cgi_handle.h	36;"	d
-CMD_APPEND_LEN	func_control_c/aria2c_control.c	24;"	d	file:
-CMD_DOWNLOAD_RESULT_LEN	func_control_c/aria2c_control.c	26;"	d	file:
-CMD_HEAD_LEN	func_control_c/aria2c_control.c	22;"	d	file:
-CMD_SPEED_LEN	func_control_c/aria2c_control.c	25;"	d	file:
-CMD_STOP_LEN	func_control_c/aria2c_control.c	27;"	d	file:
-CMD_TIME_LEN	func_control_c/aria2c_control.c	23;"	d	file:
+ACTION_NETWORK_MANAGE	cgi_handle/cgi_handle.h	34;"	d
+CMD_APPEND_LEN	func_control_c/aria2c_control.c	26;"	d	file:
+CMD_DAEMON_LEN	func_control_c/aria2c_control.c	32;"	d	file:
+CMD_DOWNLOAD_RESULT_LEN	func_control_c/aria2c_control.c	28;"	d	file:
+CMD_HEAD_LEN	func_control_c/aria2c_control.c	24;"	d	file:
+CMD_QUIET_LEN	func_control_c/aria2c_control.c	31;"	d	file:
+CMD_SPEED_LEN	func_control_c/aria2c_control.c	27;"	d	file:
+CMD_STOP_LEN	func_control_c/aria2c_control.c	29;"	d	file:
+CMD_TIME_LEN	func_control_c/aria2c_control.c	25;"	d	file:
 DEBUG_PRINT	cgi_handle/cgi_handle.h	19;"	d
 DEBUG_PRINT	func_control_h/aria2c_control.h	19;"	d
+GET_PID_CMD_LEN	func_control_c/aria2c_control.c	34;"	d	file:
+KILL_PID_LEN	func_control_c/aria2c_control.c	36;"	d	file:
 MAX_DIR_LEN	cgi_handle/cgi_handle.h	40;"	d
+MAX_DIR_LEN	func_control_c/aria2c_control.c	39;"	d	file:
+MAX_LINE_LEN	func_control_c/aria2c_control.c	37;"	d	file:
 MAX_NAME_LEN	cgi_handle/cgi_handle.h	41;"	d
+MAX_NAME_LEN	func_control_c/aria2c_control.c	40;"	d	file:
+MAX_PID_LEN	func_control_c/aria2c_control.c	35;"	d	file:
 MAX_SPEED_LEN	cgi_handle/cgi_handle.h	42;"	d
 MAX_URL_LEN	cgi_handle/cgi_handle.h	39;"	d
+MAX_URL_LEN	func_control_c/aria2c_control.c	38;"	d	file:
+PATH	func_control_c/aria2c_control.c	41;"	d	file:
+PROCESS_LEN	func_control_c/aria2c_control.c	33;"	d	file:
 RESULT_FAILURE_LOCAL	cgi_handle/cgi_handle.h	61;"	d
 RESULT_NOT_COMPLETE	cgi_handle/cgi_handle.h	62;"	d
 RESULT_SUCCEED	cgi_handle/cgi_handle.h	60;"	d
-SUFFIX	func_control_c/aria2c_control.c	28;"	d	file:
+SUFFIX	func_control_c/aria2c_control.c	30;"	d	file:
 TOWEB_ACTION	cgi_handle/cgi_handle.h	56;"	d
 TOWEB_RESULT	cgi_handle/cgi_handle.h	57;"	d
 WEB_ACTION	cgi_handle/cgi_handle.h	22;"	d
@@ -39,10 +50,18 @@ _ARIA2_CONTROL_H	func_control_h/aria2c_control.h	17;"	d
 _CGI_HANDLE_H	cgi_handle/cgi_handle.h	17;"	d
 _MINIDLNAD_CONTROL_H	func_control_h/minidlnad_control.h	17;"	d
 action	cgi_handle/cgi_handle.h	/^    int action;$/;"	m	struct:data_from_web
+action_download_delete	cgi_handle/cgi_handle.c	/^void action_download_delete(struct data_from_web *pinfo)$/;"	f
+action_download_restart	cgi_handle/cgi_handle.c	/^void action_download_restart(struct data_from_web *pinfo)$/;"	f
 action_download_start	cgi_handle/cgi_handle.c	/^void action_download_start(struct data_from_web *pinfo)$/;"	f
+action_download_stop	cgi_handle/cgi_handle.c	/^void action_download_stop(struct data_from_web *pinfo)$/;"	f
 action_minidlnad_start	cgi_handle/cgi_handle.c	/^void action_minidlnad_start(struct data_from_web *pinfo)$/;"	f
 action_minidlnad_stop	cgi_handle/cgi_handle.c	/^void action_minidlnad_stop(struct data_from_web *pinfo)$/;"	f
-aria2c_start	func_control_c/aria2c_control.c	/^int aria2c_start(char *url, char *dir, char *name, int time, char *speed)$/;"	f
+action_network_manage	cgi_handle/cgi_handle.c	/^void action_network_manage(struct data_from_web *pinfo)$/;"	f
+aria2c_delete	func_control_c/aria2c_control.c	/^int aria2c_delete(char *url, char *dir, char *name)$/;"	f
+aria2c_restart	func_control_c/aria2c_control.c	/^int aria2c_restart(char *url, char *dir, char *name)$/;"	f
+aria2c_start	func_control_c/aria2c_control.c	/^int aria2c_start(char *url, char *dir, char *name, int time, char *speed, int type)$/;"	f
+aria2c_stop	func_control_c/aria2c_control.c	/^int aria2c_stop(char *url, char *dir, char *name)$/;"	f
+aria2c_store	func_control_c/aria2c_control.c	/^int aria2c_store(char *url, char *dir, char *name, char *time, char *speed, char *path)$/;"	f
 buffer	cJSON/cJSON.c	/^typedef struct {char *buffer; int length; int offset; } printbuffer;$/;"	m	struct:__anon1	file:
 cJSON	cJSON/cJSON.h	/^typedef struct cJSON {$/;"	s
 cJSON	cJSON/cJSON.h	/^} cJSON;$/;"	t	typeref:struct:cJSON
@@ -119,14 +138,16 @@ ep	cJSON/cJSON.c	/^static const char *ep;$/;"	v	file:
 firstByteMark	cJSON/cJSON.c	/^static const unsigned char firstByteMark[7] = { 0x00, 0x00, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC };$/;"	v	file:
 free_fn	cJSON/cJSON.h	/^      void (*free_fn)(void *ptr);$/;"	m	struct:cJSON_Hooks
 get_input	cgi_handle/cgi_handle.c	/^char *get_input(void)$/;"	f
+get_pid	func_control_c/aria2c_control.c	/^int get_pid(char *url, char *dir, char *name)$/;"	f
 get_status	func_control_c/aria2c_control.c	/^int get_status(const char *result)$/;"	f
 length	cJSON/cJSON.c	/^typedef struct {char *buffer; int length; int offset; } printbuffer;$/;"	m	struct:__anon1	file:
 main	cgi_handle/cgic.c	/^int main()$/;"	f
-main	func_control_c/minidlnad_control.c	/^int main()$/;"	f
 malloc_fn	cJSON/cJSON.h	/^      void *(*malloc_fn)(size_t sz);$/;"	m	struct:cJSON_Hooks
 minidlnad_start	func_control_c/minidlnad_control.c	/^int minidlnad_start()$/;"	f
 minidlnad_stop	func_control_c/minidlnad_control.c	/^int minidlnad_stop()$/;"	f
+modify_status	func_control_c/aria2c_control.c	/^int modify_status(char *url, char *dir, char *name, char *path, int type)$/;"	f
 name	cgi_handle/cgi_handle.h	/^    char name[MAX_NAME_LEN];$/;"	m	struct:data_from_web
+network_manager	func_control_c/aria2c_control.c	/^int network_manager()$/;"	f
 next	cJSON/cJSON.h	/^	struct cJSON *next,*prev;	\/* next\/prev allow you to walk array\/object chains. Alternatively, use GetArraySize\/GetArrayItem\/GetObjectItem *\/$/;"	m	struct:cJSON	typeref:struct:cJSON::cJSON
 offset	cJSON/cJSON.c	/^typedef struct {char *buffer; int length; int offset; } printbuffer;$/;"	m	struct:__anon1	file:
 output_cJSON	cgi_handle/cgi_handle.c	/^static void output_cJSON(cJSON *root)$/;"	f	file:

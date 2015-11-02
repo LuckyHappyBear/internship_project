@@ -29,9 +29,9 @@
 /* the action type */
 #define ACTION_DOWNLOAD_START 0
 #define ACTION_DOWNLOAD_STOP 1
-#define ACTION_DOWNLOAD_SPEED_SET 2
-#define ACTION_DOWNLOAD_TIME_SET 3
-#define ACTION_DOWNLOAD_DELETE 4
+#define ACTION_DOWNLOAD_RESTART 2
+#define ACTION_DOWNLOAD_DELETE 3
+#define ACTION_NETWORK_MANAGE 4
 #define ACTION_MINIDLNAD_START 5
 #define ACTION_MINIDLNAD_STOP 6
 
@@ -57,9 +57,9 @@ struct data_from_web
 #define TOWEB_RESULT "result"
 
 /* result type */
-#define RESULT_SUCCEED 0
-#define RESULT_FAILURE_LOCAL 1
-#define RESULT_NOT_COMPLETE 2
+#define RESULT_SUCCEED 1
+#define RESULT_FAILURE_LOCAL 2
+#define RESULT_NOT_COMPLETE 3
 
 #ifdef __cplusplus
 extern "C" {
@@ -70,6 +70,14 @@ char *get_input(void);
 int parse_input(char *pinput, struct data_from_web *pstru);
 
 void action_download_start(struct data_from_web *pinfo);
+
+void action_download_stop(struct data_from_web *pinfo);
+
+void action_download_restart(struct data_from_web *pinfo);
+
+void action_download_delete(struct data_from_web *pinfo);
+
+void action_network_manage(struct data_from_web *pinfo);
 
 void action_minidlnad_start(struct data_from_web *pinfo);
 

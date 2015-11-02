@@ -159,9 +159,11 @@ static void output_cJSON(cJSON *root)
 
 void action_download_start(struct data_from_web *pinfo)
 {
-    printf("Content-Type: text/html\n\n");
+    #if DEBUG_PRINT
+    printf("action_download_start:we reach here to start\n");
+    #endif
     int flag_download_start = aria2c_start(pinfo->url, pinfo->dir, pinfo->name,
-                                           pinfo->time, pinfo->speed);
+                                           pinfo->time, pinfo->speed, 1);
     if (-1 == flag_download_start)
     {
         cJSON *root = cJSON_CreateObject();
@@ -193,6 +195,126 @@ void action_download_start(struct data_from_web *pinfo)
         cJSON_Delete(root);
         root = NULL;
         /* end of: Response to web: download successfully */
+        return;
+    }
+}
+
+void action_download_stop(struct data_from_web *pinfo)
+{
+    #if DEBUG_PRINT
+    printf("action_download_stop:we reach here to stop\n");
+    #endif
+    int flag_download_stop = aria2c_stop(pinfo->url, pinfo->dir,
+                                         pinfo->name);
+    if (-1 == flag_download_stop)
+    {
+        cJSON *root = cJSON_CreateObject();
+        cJSON_AddNumberToObject(root, TOWEB_ACTION, pinfo->action);
+        cJSON_AddNumberToObject(root, TOWEB_RESULT, RESULT_FAILURE_LOCAL);
+        output_cJSON(root);
+        cJSON_Delete(root);
+        root = NULL;
+        /* end of: Response to web: failure_local */
+        return;
+    }
+    else
+    {
+        cJSON *root = cJSON_CreateObject();
+        cJSON_AddNumberToObject(root, TOWEB_ACTION, pinfo->action);
+        cJSON_AddNumberToObject(root, TOWEB_RESULT, RESULT_SUCCEED);
+        output_cJSON(root);
+        cJSON_Delete(root);
+        root = NULL;
+        /* end of: Response to web: failure_local */
+        return;
+    }
+}
+
+void action_download_restart(struct data_from_web *pinfo)
+{
+    #if DEBUG_PRINT
+    printf("action_download_restart:we reach here to restart\n");
+    #endif
+    int flag_download_restart = aria2c_restart(pinfo->url, pinfo->dir,
+                                         pinfo->name);
+    if (-1 == flag_download_restart)
+    {
+        cJSON *root = cJSON_CreateObject();
+        cJSON_AddNumberToObject(root, TOWEB_ACTION, pinfo->action);
+        cJSON_AddNumberToObject(root, TOWEB_RESULT, RESULT_FAILURE_LOCAL);
+        output_cJSON(root);
+        cJSON_Delete(root);
+        root = NULL;
+        /* end of: Response to web: failure_local */
+        return;
+    }
+    else
+    {
+        cJSON *root = cJSON_CreateObject();
+        cJSON_AddNumberToObject(root, TOWEB_ACTION, pinfo->action);
+        cJSON_AddNumberToObject(root, TOWEB_RESULT, RESULT_SUCCEED);
+        output_cJSON(root);
+        cJSON_Delete(root);
+        root = NULL;
+        /* end of: Response to web: failure_local */
+        return;
+    }
+}
+
+void action_download_delete(struct data_from_web *pinfo)
+{
+    #if DEBUG_PRINT
+    printf("action_download_delete:we reach here to delete\n");
+    #endif
+    int flag_download_delete = aria2c_delete(pinfo->url, pinfo->dir,
+                                         pinfo->name);
+    if (-1 == flag_download_delete)
+    {
+        cJSON *root = cJSON_CreateObject();
+        cJSON_AddNumberToObject(root, TOWEB_ACTION, pinfo->action);
+        cJSON_AddNumberToObject(root, TOWEB_RESULT, RESULT_FAILURE_LOCAL);
+        output_cJSON(root);
+        cJSON_Delete(root);
+        root = NULL;
+        /* end of: Response to web: failure_local */
+        return;
+    }
+    else
+    {
+        cJSON *root = cJSON_CreateObject();
+        cJSON_AddNumberToObject(root, TOWEB_ACTION, pinfo->action);
+        cJSON_AddNumberToObject(root, TOWEB_RESULT, RESULT_SUCCEED);
+        output_cJSON(root);
+        cJSON_Delete(root);
+        root = NULL;
+        /* end of: Response to web: failure_local */
+        return;
+    }
+}
+
+void action_network_manage(struct data_from_web *pinfo)
+{
+    int flag_network_manage = network_manager();
+    if (-1 == flag_network_manage)
+    {
+        cJSON *root = cJSON_CreateObject();
+        cJSON_AddNumberToObject(root, TOWEB_ACTION, pinfo->action);
+        cJSON_AddNumberToObject(root, TOWEB_RESULT, RESULT_FAILURE_LOCAL);
+        output_cJSON(root);
+        cJSON_Delete(root);
+        root = NULL;
+        /* end of: Response to web: failure_local */
+        return;
+    }
+    else
+    {
+        cJSON *root = cJSON_CreateObject();
+        cJSON_AddNumberToObject(root, TOWEB_ACTION, pinfo->action);
+        cJSON_AddNumberToObject(root, TOWEB_RESULT, RESULT_SUCCEED);
+        output_cJSON(root);
+        cJSON_Delete(root);
+        root = NULL;
+        /* end of: Response to web: failure_local */
         return;
     }
 }

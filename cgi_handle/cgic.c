@@ -55,21 +55,82 @@ int main()
         #ifdef DEBUG_PRINT
         printf("excute action_download_start\n");
         #endif
+
         action_download_start(&request);
+
+        #ifdef DEBUG_PRINT
+        printf("excute finished\n");
+        #endif
+        break;
+    case ACTION_DOWNLOAD_STOP:
+        #if DEBUG_PRINT
+        printf("excute action_download_stop\n");
+        #endif
+
+        action_download_stop(&request);
+
+        #ifdef DEBUG_PRINT
+        printf("excute finished\n");
+        #endif
+        break;
+        case ACTION_DOWNLOAD_RESTART:
+        #ifdef DEBUG_PRINT
+        printf("excute action_download_restart\n");
+        #endif
+
+        action_download_restart(&request);
+
+        #ifdef DEBUG_PRINT
+        printf("excute finished\n");
+        #endif
+        break;
+        case ACTION_DOWNLOAD_DELETE:
+        #ifdef DEBUG_PRINT
+        printf("excute action_download_delete\n");
+        #endif
+
+        action_download_delete(&request);
+
+        #ifdef DEBUG_PRINT
+        printf("excute finished\n");
+        #endif
+        break;
+    case ACTION_NETWORK_MANAGE:
+        #ifdef DEBUG_PRINT
+        printf("excute action_network_manage\n");
+        #endif
+
+        action_network_manage(&request);
+
         #ifdef DEBUG_PRINT
         printf("excute finished\n");
         #endif
         break;
     case ACTION_MINIDLNAD_START:
+        #ifdef DEBUG_PRINT
+        printf("excute action_minidlnad_start\n");
+        #endif
+
         action_minidlnad_start(&request);
+
+        #ifdef DEBUG_PRINT
+        printf("excute finished\n");
+        #endif
         break;
     case ACTION_MINIDLNAD_STOP:
+        #ifdef DEBUG_PRINT
+        printf("excute action_minidlnad_stop\n");
+        #endif
+
         action_minidlnad_stop(&request);
+
+        #ifdef DEBUG_PRINT
+        printf("excute finished\n");
+        #endif
         break;
     default:
         break;
     }
-
     return 0;
 }
 

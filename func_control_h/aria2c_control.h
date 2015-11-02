@@ -79,7 +79,15 @@ int get_status(const char *result);
                -1: there are some problems happened
  Others:       None
 *****************************************************************/
-int aria2c_start(char *url, char *dir, char *name, int time, char *speed);
+int aria2c_start(char *url, char *dir, char *name, int time, char *speed, int type);
+
+int aria2c_stop(char *url, char *dir, char *name);
+
+int aria2c_restart(char *url, char *dir, char *name);
+
+int aria2c_delete(char *url, char *dir, char *name);
+
+int network_manager();
 
 #ifdef __cplusplus
 }
