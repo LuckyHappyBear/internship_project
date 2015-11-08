@@ -15,11 +15,12 @@
 
 #include <ctype.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 
-#include "../func_control_h/aria2c_control.h"
+#include "aria2c_control.h"
 
 #define CMD_HEAD_LEN 10
 #define CMD_TIME_LEN 6
@@ -95,6 +96,25 @@ int delete_file(const char *name)
     return remove(name);
 }
 
+void sed_replace_handle(const char *note, char **note_add)
+{
+    int i, j = 0;
+    int length = strlen(note);
+    for (i = 0; i < length; i++)
+    {
+        if ('/' == note[i] || '\\' == note[i])
+        {
+            (*note_add)[j++] = '\\';
+            (*note_add)[j++] = note[i];
+        }
+        else
+        {
+            (*note_add)[j++] = note[i];
+        }
+    }
+    (*note_add)[j] = '\0';
+}
+
 /*****************************************************************
  Function:     complete_shell
  Description:  we use this function to complete the shell
@@ -106,26 +126,73 @@ int delete_file(const char *name)
  Return:       0:create failed 1:create successfully
  Others:       None
 *****************************************************************/
-int complete_shell(const char *name, const char *result, int type)
+int complete_shell(const char *file_name, const char *url,
+                   const char *dir, const char *name)
 {
-    FILE *fp = fopen(name, "w");
-    if (0 == type)
+    char *url_handle = malloc(sizeof(char) * strlen(url) * 2);
+    char *dir_handle = malloc(sizeof(char) * strlen(dir) * 2);
+    char *name_handle = malloc(sizeof(char) * strlen(name) * 2);
+    char *cmd = malloc(((strlen(url) + strlen(dir) + strlen(name)) * 2
+                        + strlen(PATH) + 16) * 3);
+    memset(url_handle, 0, strlen(url));
+    memset(dir_handle, 0, strlen(dir));
+    memset(name_handle, 0, strlen(name));
+    memset(cmd, 0, strlen(cmd));
+
+    FILE *fp = fopen(file_name, "w");
+    int fd;
+    if (NULL == fp)
     {
-        fprintf(fp, "%s\n%s%s", "#!/bin/bash", "echo 0 > ", result);
-        fclose(fp);
-        return 1;
+        return -1;
     }
-    else if (1 == type)
+
+    fd = fileno(fp);
+    fchmod(fd, S_IXUSR|S_IRUSR|S_IWUSR);
+
+    sed_replace_handle(url, &url_handle);
+    sed_replace_handle(dir, &dir_handle);
+    sed_replace_handle(name, &name_handle);
+
+    strcat(cmd, "sed -i ");
+    strcat(cmd, "\'1,$s/0 ");
+    strcat(cmd, url_handle);
+    strcat(cmd, " ");
+    strcat(cmd, dir_handle);
+    strcat(cmd, " ");
+    strcat(cmd, name_handle);
+    strcat(cmd, "/");
+    strcat(cmd, "3 ");
+    strcat(cmd, url_handle);
+    strcat(cmd, " ");
+    strcat(cmd, dir_handle);
+    strcat(cmd, " ");
+    strcat(cmd, name_handle);
+    strcat(cmd, "/");
+    strcat(cmd, "g");
+    strcat(cmd, "\' ");
+    strcat(cmd, PATH);
+    #if DEBUG_PRINT
+    printf("complete_shell:the cmd is %s\n", cmd);
+    #endif
+
+    if (fprintf(fp, "%s\n%s", "#!/bin/bash", cmd) < 0)
     {
-        fprintf(fp, "%s\n%s%s", "#!/bin/bash", "echo 1 > ", result);
+        #if DEBUG_PRINT
+        printf("complete_shell:An error occour\n");
+        #endif
         fclose(fp);
-        return 1;
+        free(cmd);
+        free(url_handle);
+        free(dir_handle);
+        free(name_handle);
+        return -1;
     }
-    else
-    {
-        fclose(fp);
-        return 0;
-    }
+    fclose(fp);
+    free(cmd);
+    free(url_handle);
+    free(dir_handle);
+    free(name_handle);
+    return 1;
 }
 
 /*****************************************************************
@@ -137,41 +204,142 @@ int complete_shell(const char *name, const char *result, int type)
                -1:function excute wrong
  Others:       None
 *****************************************************************/
-int get_status(const char *result)
+int get_status(const char *url, const char *dir, const char *name)
 {
-    FILE *fp;
-    int file_size;
-    char *status;
+    int is_run;
+    int len;
+    int count;
+    int time;
+    int line_num = 1;
+    char status;
+    char lineno_buffer[4];
+    char url_get[MAX_URL_LEN];
+    char dir_get[MAX_DIR_LEN];
+    char name_get[MAX_NAME_LEN];
+    char line[MAX_LINE_LEN];
+    char file_name[512];
 
-    fp = fopen(result, "r");
-    fseek(fp, 0, SEEK_END);
-    file_size = ftell(fp);
-
-    fseek(fp, 0, SEEK_SET );
-    status =  malloc(file_size * sizeof(*status));
-    fread(status, 1, sizeof(char), fp);
-    status[1] = '\0';
-
-    #if DEBUG_PRINT
-    printf("get_status:the status is %s and the length is %lu\n", status,
-           strlen(status));
-    #endif
-
-    if (strcmp(status, "0") == 0)
+    is_run = get_pid(url, dir, name);
+    if (is_run == -1)
     {
-        return 0;
-    }
-    else if (strcmp(status, "1") == 0)
-    {
-        return 1;
+        #if DEBUG_PRINT
+        printf("get_status:the process has been stoped\n");
+        #endif
+    	memset(url_get, 0, MAX_URL_LEN);
+    	memset(dir_get, 0, MAX_DIR_LEN);
+    	memset(name_get, 0, MAX_NAME_LEN);
+   	    memset(line, 0, MAX_LINE_LEN);
+   	    memset(lineno_buffer, 0, 4);
+        memset(file_name, 0, 512);
+
+    	FILE *fp = fopen(PATH, "a+w");
+    	if (NULL == fp)
+    	{
+            #if DEBUG_PRINT
+            printf("get_status:open file failed\n");
+            #endif
+    	    return -1;
+    	}
+
+        while (fgets(line, MAX_LINE_LEN, fp))
+        {
+            status = line[0];
+            len = 0;
+            count = 2;
+
+            for (;line[count] != ' ' && line[count] != '\n'; count ++)
+            {
+                url_get[len ++] = line[count];
+            }
+            url_get[len] = '\0';
+            count ++;
+            len = 0;
+
+            for (;line[count] != ' ' && line[count] != '\n'; count ++)
+            {
+                dir_get[len ++] = line[count];
+            }
+            dir_get[len] = '\0';
+            count ++;
+            len = 0;
+
+            for (;line[count] != ' ' && line[count] != '\n'; count ++)
+            {
+                name_get[len ++] = line[count];
+            }
+            name_get[len] = '\0';
+            count ++;
+            len = 0;
+
+            #if DEBUG_PRINT
+            printf("get_status:begin to compare\n");
+            #endif
+            #if DEBUG_PRINT
+            printf("+++++++++++++++++++++++++++++++++++++++\n");
+            printf("url is %s\nurl_get is %s\n", url, url_get);
+            printf("dir is %s\ndir_get is %s\n", dir, dir_get);
+            printf("name is %s\nname_get is %s\n", name, name_get);
+            printf("+++++++++++++++++++++++++++++++++++++++\n");
+            #endif
+            if (strcmp(url, url_get) == 0 && strcmp(dir, dir_get) == 0
+                && strcmp(name, name_get) == 0)
+            {
+                #if DEBUG_PRINT
+                printf("get_status:match and status is %c\n", status);
+                #endif
+
+                if (status == '0')
+                {
+                    strcat(file_name, dir_get);
+                    strcat(file_name, name);
+                    strcat(file_name, ".aria2");
+                    #if DEBUG_PRINT
+                    printf("get_status:the file_name is %s\n", file_name);
+                    #endif
+
+                    if (access(file_name, F_OK) == 0)
+                    {
+                        #if DEBUG_PRINT
+                        printf("get_status:download exception\n");
+                        #endif
+                        modify_status(url, dir, name, PATH, 1);
+                        return -1;
+                    }
+                    else
+                    {
+                        if (modify_status(url, dir, name, PATH, 2) == -1)
+                        {
+                            #if DEBUG_PRINT
+                            printf("get_status:modify exception\n");
+                            #endif
+                            return -1;
+                        }
+                        else
+                        {
+                            #if DEBUG_PRINT
+                            printf("get_status:download successfully\n");
+                            #endif
+                            return 1;
+                        }
+                    }
+                }
+            }
+
+            count = 0;
+            line_num++;
+            memset(url_get, 0, MAX_URL_LEN);
+            memset(dir_get, 0, MAX_DIR_LEN);
+            memset(name_get, 0, MAX_NAME_LEN);
+            memset(line, 0, MAX_LINE_LEN);
+        }
     }
     else
     {
-        return -1;
+        return 0;
     }
 }
 
-int get_pid(char *url, char *dir, char *name)
+int get_pid(const char *url, const char *dir, const char *name)
 {
     FILE *stream;
     int pid;
@@ -213,7 +381,7 @@ int get_pid(char *url, char *dir, char *name)
 
     for (i = 0; i < sizeof(buf); i ++)
     {
-        if (isspace(buf[i]))
+        if (isspace(buf[i]) && i != 0)
         {
             break;
         }
@@ -271,7 +439,7 @@ int aria2c_store(char *url, char *dir, char *name, char *time, char *speed, char
     return 1;
 }
 
-int modify_status(char *url, char *dir, char *name, char *path, int type)
+int modify_status(const char *url, const char *dir, const char *name, const char *path, int type)
 {
     int len;
     int count;
@@ -415,14 +583,14 @@ int aria2c_start(char *url, char *dir, char *name, int time, char *speed, int ty
     int store_succeed;
     char *cmd = malloc(sizeof(char) * cmd_len);
     char *time_buffer = malloc(sizeof(char) * CMD_TIME_LEN);
-    //char *complete_sh = malloc(strlen(name) + SUFFIX);
-    //char *not_complete_sh = malloc(strlen(name) + SUFFIX);
-    //char *result = malloc(strlen(name) + SUFFIX);
+    /*char *complete_sh = malloc(strlen(name) + SUFFIX);
+    char *not_complete_sh = malloc(strlen(name) + SUFFIX);
+    char *result = malloc(strlen(name) + SUFFIX);*/
 
     memset(cmd, 0, cmd_len);
     memset(time_buffer, 0, CMD_TIME_LEN);
-    //memset(complete_sh, 0, strlen(complete_sh));
-    //memset(not_complete_sh, 0, strlen(not_complete_sh));
+    /*memset(complete_sh, 0, strlen(complete_sh));
+    memset(not_complete_sh, 0, strlen(not_complete_sh));*/
 
     /*strcat(complete_sh, name);
     strcat(complete_sh, ".sh");
@@ -457,7 +625,26 @@ int aria2c_start(char *url, char *dir, char *name, int time, char *speed, int ty
         return -1;
     }*/
 
-    /*complete_shell(complete_sh, result, 1);
+    #if DEBUG_PRINT
+    printf("aria2c_start:we start store record here\n");
+    #endif
+    if (type)
+    {
+        store_succeed = aria2c_store(url, dir, name, time_buffer, speed, PATH);
+        if (store_succeed == -1)
+        {
+            #if DEBUG_PRINT
+            printf("aria2c_start:store_failed\n");
+            #endif
+            return -1;
+        }
+
+        #if DEBUG_PRINT
+        printf("aria2c_start:we finish store record here\n");
+        #endif
+    }
+
+    /*complete_shell(complete_sh, url, dir, name);
     complete_shell(not_complete_sh, result, 0);*/
 
     sprintf(time_buffer, "%d", time);
@@ -476,6 +663,7 @@ int aria2c_start(char *url, char *dir, char *name, int time, char *speed, int ty
     strcat(cmd, " --on-download-stop=");
     strcat(cmd, not_complete_sh);*/
     strcat(cmd, " --daemon=true");
+    //strcat(cmd, " &"); 
 
     #if DEBUG_PRINT
     printf("aria2c_start:the cmd is %s\n", cmd);
@@ -490,25 +678,6 @@ int aria2c_start(char *url, char *dir, char *name, int time, char *speed, int ty
         printf("aria2c_start:system call failed\n");
         #endif
         return -1;
-    }
-
-    #if DEBUG_PRINT
-    printf("aria2c_start:we start store record here\n");
-    #endif
-    if (type)
-    {
-        store_succeed = aria2c_store(url, dir, name, time_buffer, speed, PATH);
-        if (store_succeed == -1)
-        {
-            #if DEBUG_PRINT
-            printf("aria2c_start:store_failed\n");
-            #endif
-            return -1;
-        }
-
-        #if DEBUG_PRINT
-        printf("aria2c_start:we finish store record here\n");
-        #endif
     }
 
     /* system call failed */

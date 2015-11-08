@@ -15,7 +15,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "../func_control_h/minidlnad_control.h"
+#include "minidlnad_control.h"
 
 /*****************************************************************
  Function:     minidlnad_start
@@ -27,7 +27,7 @@
 *****************************************************************/
 int minidlnad_start()
 {
-    int status = system("minidlnad");
+    int status = system("minidlna");
 
     /* excute successfully */
     if ((-1 != status) && WIFEXITED(status) &&
@@ -51,7 +51,7 @@ int minidlnad_start()
 *****************************************************************/
 int minidlnad_stop()
 {
-    int status = system("killall minidlnad");
+    int status = system("killall minidlna");
 
     /* excute successfully */
     if ((-1 != status) && WIFEXITED(status) &&

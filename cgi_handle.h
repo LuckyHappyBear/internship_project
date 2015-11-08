@@ -32,8 +32,11 @@
 #define ACTION_DOWNLOAD_RESTART 2
 #define ACTION_DOWNLOAD_DELETE 3
 #define ACTION_NETWORK_MANAGE 4
-#define ACTION_MINIDLNAD_START 5
-#define ACTION_MINIDLNAD_STOP 6
+#define ACTION_GET_STATUS 5
+#define ACTION_MANAGER_START 6
+#define ACTION_MANAGER_STOP 7
+#define ACTION_MINIDLNAD_START 8
+#define ACTION_MINIDLNAD_STOP 9
 
 /* the length of the field in struct */
 #define MAX_URL_LEN 1000
@@ -78,6 +81,12 @@ void action_download_restart(struct data_from_web *pinfo);
 void action_download_delete(struct data_from_web *pinfo);
 
 void action_network_manage(struct data_from_web *pinfo);
+
+void action_get_status(struct data_from_web *pinfo);
+
+void action_manager_start(struct data_from_web *pinfo);
+
+void action_manager_stop(struct data_from_web *pinfo);
 
 void action_minidlnad_start(struct data_from_web *pinfo);
 

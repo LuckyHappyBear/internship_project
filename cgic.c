@@ -15,12 +15,15 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <pthread.h>
+#include "flow_control.h"
 #include "cgi_handle.h"
 
 int main()
 {
     /* get input from web */
     char *pinput = get_input();
+    pthread_t id = 1;
 
     /* if no input,return 0 */
     if (NULL == pinput)
@@ -73,7 +76,7 @@ int main()
         printf("excute finished\n");
         #endif
         break;
-        case ACTION_DOWNLOAD_RESTART:
+    case ACTION_DOWNLOAD_RESTART:
         #ifdef DEBUG_PRINT
         printf("excute action_download_restart\n");
         #endif
@@ -84,12 +87,23 @@ int main()
         printf("excute finished\n");
         #endif
         break;
-        case ACTION_DOWNLOAD_DELETE:
+    case ACTION_DOWNLOAD_DELETE:
         #ifdef DEBUG_PRINT
         printf("excute action_download_delete\n");
         #endif
 
         action_download_delete(&request);
+
+        #ifdef DEBUG_PRINT
+        printf("excute finished\n");
+        #endif
+        break;
+    case ACTION_GET_STATUS:
+        #ifdef DEBUG_PRINT
+        printf("excute action_get_status\n");
+        #endif
+
+        action_get_status(&request);
 
         #ifdef DEBUG_PRINT
         printf("excute finished\n");
@@ -101,6 +115,28 @@ int main()
         #endif
 
         action_network_manage(&request);
+
+        #ifdef DEBUG_PRINT
+        printf("excute finished\n");
+        #endif
+        break;
+    case ACTION_MANAGER_START:
+        #ifdef DEBUG_PRINT
+        printf("excute action_manager_start\n");
+        #endif
+
+        action_manager_start(&request);
+
+        #ifdef DEBUG_PRINT
+        printf("excute finished\n");
+        #endif
+        break;
+    case ACTION_MANAGER_STOP:
+        #ifdef DEBUG_PRINT
+        printf("excute action_manager_stop\n");
+        #endif
+
+        action_manager_stop(&request);
 
         #ifdef DEBUG_PRINT
         printf("excute finished\n");

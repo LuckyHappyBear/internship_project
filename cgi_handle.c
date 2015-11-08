@@ -17,10 +17,14 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#include <unistd.h>
+#include <pthread.h>
 #include "cgi_handle.h"
-#include "../cJSON/cJSON.h"
-#include "../func_control_h/aria2c_control.h"
-#include "../func_control_h/minidlnad_control.h"
+#include "cJSON.h"
+#include "aria2c_control.h"
+#include "minidlnad_control.h"
+#include "flow_control.h"
+#include "client.h"
 
 char *get_input(void)
 {
@@ -194,7 +198,7 @@ void action_download_start(struct data_from_web *pinfo)
         output_cJSON(root);
         cJSON_Delete(root);
         root = NULL;
-        /* end of: Response to web: download successfully */
+        /* end of: Response to web: download start successfully */
         return;
     }
 }
@@ -225,7 +229,7 @@ void action_download_stop(struct data_from_web *pinfo)
         output_cJSON(root);
         cJSON_Delete(root);
         root = NULL;
-        /* end of: Response to web: failure_local */
+        /* end of: Response to web: successful */
         return;
     }
 }
@@ -256,7 +260,7 @@ void action_download_restart(struct data_from_web *pinfo)
         output_cJSON(root);
         cJSON_Delete(root);
         root = NULL;
-        /* end of: Response to web: failure_local */
+        /* end of: Response to web: successful */
         return;
     }
 }
@@ -287,7 +291,49 @@ void action_download_delete(struct data_from_web *pinfo)
         output_cJSON(root);
         cJSON_Delete(root);
         root = NULL;
+        /* end of: Response to web: successful */
+        return;
+    }
+}
+
+void action_get_status(struct data_from_web *pinfo)
+{
+    #if DEBUG_PRINT
+    printf("action_get_status:we reach here to get_status\n");
+    #endif
+    int flag_get_status = get_status(pinfo->url, pinfo->dir,
+                                         pinfo->name);
+    if (-1 == flag_get_status)
+    {
+        cJSON *root = cJSON_CreateObject();
+        cJSON_AddNumberToObject(root, TOWEB_ACTION, pinfo->action);
+        cJSON_AddNumberToObject(root, TOWEB_RESULT, RESULT_FAILURE_LOCAL);
+        output_cJSON(root);
+        cJSON_Delete(root);
+        root = NULL;
         /* end of: Response to web: failure_local */
+        return;
+    }
+    else if( 1 == flag_get_status )
+    {
+        cJSON *root = cJSON_CreateObject();
+        cJSON_AddNumberToObject(root, TOWEB_ACTION, pinfo->action);
+        cJSON_AddNumberToObject(root, TOWEB_RESULT, RESULT_SUCCEED);
+        output_cJSON(root);
+        cJSON_Delete(root);
+        root = NULL;
+        /* end of: Response to web: successfully download */
+        return;
+    }
+    else
+    {
+        cJSON *root = cJSON_CreateObject();
+        cJSON_AddNumberToObject(root, TOWEB_ACTION, pinfo->action);
+        cJSON_AddNumberToObject(root, TOWEB_RESULT, RESULT_NOT_COMPLETE);
+        output_cJSON(root);
+        cJSON_Delete(root);
+        root = NULL;
+        /* end of: Response to web: download normal but not complete */
         return;
     }
 }
@@ -314,9 +360,39 @@ void action_network_manage(struct data_from_web *pinfo)
         output_cJSON(root);
         cJSON_Delete(root);
         root = NULL;
-        /* end of: Response to web: failure_local */
+        /* end of: Response to web: successful */
         return;
     }
+}
+
+void action_manager_start(struct data_from_web *pinfo)
+{
+    #if DEBUG_PRINT
+    printf("action_manager_start:we reach here to start manager\n");
+    #endif
+    manager_start(1);
+    cJSON *root = cJSON_CreateObject();
+    cJSON_AddNumberToObject(root, TOWEB_ACTION, pinfo->action);
+    cJSON_AddNumberToObject(root, TOWEB_RESULT, RESULT_SUCCEED);
+    output_cJSON(root);
+    cJSON_Delete(root);
+    root = NULL;
+    /* end of: Response to web: successful */
+    return;
+}
+
+void action_manager_stop(struct data_from_web *pinfo)
+{
+    system("killall ./server");
+    system("killall ./flow_control");
+    cJSON *root = cJSON_CreateObject();
+    cJSON_AddNumberToObject(root, TOWEB_ACTION, pinfo->action);
+    cJSON_AddNumberToObject(root, TOWEB_RESULT, RESULT_SUCCEED);
+    output_cJSON(root);
+    cJSON_Delete(root);
+    root = NULL;
+    /* end of: Response to web: successful */
+    return;
 }
 
 void action_minidlnad_start(struct data_from_web *pinfo)

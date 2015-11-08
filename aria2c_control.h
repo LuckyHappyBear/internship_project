@@ -52,7 +52,8 @@ int delete_file(const char *name);
  Return:       0:create failed 1:create successfully
  Others:       None
 *****************************************************************/
-int complete_shell(const char *name, const char *result, int type);
+int complete_shell(const char *file_name, const char *url,
+                   const char *dir, const char *name);
 
 /*****************************************************************
  Function:     get_status
@@ -63,7 +64,7 @@ int complete_shell(const char *name, const char *result, int type);
                -1:function excute wrong
  Others:       None
 *****************************************************************/
-int get_status(const char *result);
+int get_status(const char *url, const char *dir, const char *name);
 
 /*****************************************************************
  Function:     aria2c_start
@@ -86,6 +87,10 @@ int aria2c_stop(char *url, char *dir, char *name);
 int aria2c_restart(char *url, char *dir, char *name);
 
 int aria2c_delete(char *url, char *dir, char *name);
+
+int get_pid(const char *url, const char *dir, const char *name);
+
+int modify_status(const char *url, const char *dir, const char *name, const char *path, int type);
 
 int network_manager();
 
